@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<LangVersion>8</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="System.Management" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="FanControl.Plugins">
+		  <SpecificVersion>False</SpecificVersion>
+		  <HintPath>..\..\Middleware\FanControl\FanControl.Plugins.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+</Project>
