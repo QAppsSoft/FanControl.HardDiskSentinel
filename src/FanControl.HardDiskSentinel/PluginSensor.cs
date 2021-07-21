@@ -1,6 +1,7 @@
-﻿using System.Linq;
+﻿using FanControl.Plugins;
+using System.Diagnostics;
+using System.Linq;
 using System.Management;
-using FanControl.Plugins;
 
 namespace FanControl.HardDiskSentinel
 {
@@ -21,16 +22,26 @@ namespace FanControl.HardDiskSentinel
 
         public void Update()
         {
-            
             using var searcher = new ManagementObjectSearcher(_scope, _query);
 
-            var items = searcher.Get();
+            float temperature = 36;
+            try
+            {
+                var items = searcher.Get();
 
-            var temperature = items.Cast<ManagementObject>()
-                .Select(DriveInfoReader.ReadBasic)
-                .Where(drive => drive.Model == _drive.Model && drive.Serial == _drive.Serial)
-                .Select(drive => drive.Temperature)
-                .Select(float.Parse).FirstOrDefault();
+                temperature = items.Cast<ManagementObject>()
+                    .Select(DriveInfoReader.ReadBasic)
+                    .Where(drive => drive.Model == _drive.Model && drive.Serial == _drive.Serial)
+                    .Select(drive => drive.Temperature)
+                    .Select(float.Parse)
+                    .FirstOrDefault();
+            }
+            catch (ManagementException exception)
+            {
+#if DEBUG
+                Debug.Print(exception.ToString());
+#endif
+            }
 
             Value = temperature;
         }
