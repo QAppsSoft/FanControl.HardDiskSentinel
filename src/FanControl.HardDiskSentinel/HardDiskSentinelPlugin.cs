@@ -23,7 +23,7 @@ namespace FanControl.HardDiskSentinel
             ps.AddScript("Get-PhysicalDisk | where {($_.CannotPoolReason -match 'In a Pool')}");
 
             var disks = ps.Invoke()
-                .Select(DriveInfoReader.Read)
+                .Select(DriveInfoReader.ReadFromPowerShell)
                 .ToArray();
 
             var sensors = disks.Select(d => new PluginSensor(d));

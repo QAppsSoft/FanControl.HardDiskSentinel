@@ -5,7 +5,7 @@ namespace FanControl.HardDiskSentinel
 {
     public static class DriveInfoReader
     {
-        public static Drive ReadBasic(ManagementObject managementObject)
+        public static Drive ReadFromWmi(ManagementObject managementObject)
         {
             return Drive.Factory.Build(
                 managementObject.GetPropertyValue("ModelID").ToString().Trim(),
@@ -14,7 +14,7 @@ namespace FanControl.HardDiskSentinel
                 managementObject.GetPropertyValue("TemperatureC").ToString().Trim());
         }
 
-        public static Drive Read(PSObject managementObject)
+        public static Drive ReadFromPowerShell(PSObject managementObject)
         {
             return Drive.Factory.Build(managementObject.Properties["Model"].Value.ToString(),
                 managementObject.Properties["SerialNumber"].Value.ToString(),

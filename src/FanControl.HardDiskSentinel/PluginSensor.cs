@@ -30,7 +30,7 @@ namespace FanControl.HardDiskSentinel
                 var items = searcher.Get();
 
                 temperature = items.Cast<ManagementObject>()
-                    .Select(DriveInfoReader.ReadBasic)
+                    .Select(DriveInfoReader.ReadFromWmi)
                     .Where(drive => drive.Model == _drive.Model && drive.Serial == _drive.Serial)
                     .Select(drive => drive.Temperature)
                     .Select(float.Parse)
