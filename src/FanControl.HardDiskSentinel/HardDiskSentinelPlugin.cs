@@ -1,6 +1,6 @@
 ﻿using FanControl.Plugins;
 using System.Linq;
-using System.Management;
+using System.Management.Automation;
 
 namespace FanControl.HardDiskSentinel
 {
@@ -18,17 +18,15 @@ namespace FanControl.HardDiskSentinel
 
         public void Load(IPluginSensorsContainer container)
         {
-            // Get Drives from WMI
-            var scope = new ManagementScope(@"root\wmi");
-            var query = new ObjectQuery("SELECT * FROM HDSentinel");
+            var ps = PowerShell.Create();
 
-            using var searcher = new ManagementObjectSearcher(scope, query);
+            ps.AddScript("Get-PhysicalDisk | where {($_.CannotPoolReason -match 'In a Pool')}");
 
-            var drives = searcher.Get()
-                .Cast<ManagementObject>()
-                .Select(DriveInfoReader.Read);
+            var disks = ps.Invoke()
+                .Select(DriveInfoReader.Read)
+                .ToArray();
 
-            var sensors = drives.Select(drive => new PluginSensor(drive));
+            var sensors = disks.Select(d => new PluginSensor(d));
 
             container.TempSensors.AddRange(sensors);
         }
