@@ -1,4 +1,5 @@
-﻿using FanControl.Plugins;
+﻿using System;
+using FanControl.Plugins;
 using System.Linq;
 using System.Management.Automation;
 
@@ -26,9 +27,14 @@ namespace FanControl.HardDiskSentinel
                 .Select(DriveInfoReader.ReadFromPowerShell)
                 .ToArray();
 
-            var sensors = disks.Select(d => new PluginSensor(d));
+            var sensors = disks.Select(BuildPluginSensor);
 
             container.TempSensors.AddRange(sensors);
+        }
+
+        private static PluginSensor BuildPluginSensor(Drive drive)
+        {
+            return new PluginSensor(drive);
         }
     }
 }
