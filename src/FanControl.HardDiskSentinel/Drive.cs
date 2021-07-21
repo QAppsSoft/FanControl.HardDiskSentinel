@@ -1,6 +1,6 @@
 ﻿namespace FanControl.HardDiskSentinel
 {
-    public class Drive
+    public readonly struct Drive
     {
         private Drive(string model, string serial, string firmware, string temperature)
         {
