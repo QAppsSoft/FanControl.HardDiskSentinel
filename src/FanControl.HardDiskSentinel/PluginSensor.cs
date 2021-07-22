@@ -1,4 +1,5 @@
-﻿using FanControl.Plugins;
+﻿using System.Collections.Generic;
+using FanControl.Plugins;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
@@ -10,6 +11,7 @@ namespace FanControl.HardDiskSentinel
         private readonly Drive _drive;
         private readonly ManagementScope _scope = new ManagementScope(@"root\wmi");
         private readonly ObjectQuery _query = new ObjectQuery("SELECT * FROM HDSentinel");
+        private static readonly float _defaultTemperature = 36f;
 
         public PluginSensor(Drive drive)
         {
@@ -24,26 +26,25 @@ namespace FanControl.HardDiskSentinel
         {
             using var searcher = new ManagementObjectSearcher(_scope, _query);
 
-            float temperature = 36;
             try
             {
-                var items = searcher.Get();
-
-                temperature = items.Cast<ManagementObject>()
+                var temperatureValue = searcher.Get()
+                    .Cast<ManagementObject>()
                     .Select(DriveInfoReader.ReadFromWmi)
-                    .Where(drive => drive.Model == _drive.Model && drive.Serial == _drive.Serial)
+                    // Filter using StartWith because apparently PowerShell trims the last two character from model number in Windows Server 2019
+                    .Where(drive => drive.Model.StartsWith(_drive.Model) && drive.Serial == _drive.Serial)
                     .Select(drive => drive.Temperature)
-                    .Select(float.Parse)
-                    .FirstOrDefault();
+                    .First();
+
+                Value = float.TryParse(temperatureValue, out var temperature) ? temperature : _defaultTemperature;
             }
             catch (ManagementException exception)
             {
 #if DEBUG
                 Debug.Print(exception.ToString());
 #endif
+                Value = _defaultTemperature;
             }
-
-            Value = temperature;
         }
 
         public string Id => Name;
