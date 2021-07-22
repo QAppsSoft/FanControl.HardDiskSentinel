@@ -1,12 +1,15 @@
-﻿using System.Linq;
+﻿using FanControl.Plugins;
+using System.Diagnostics;
+using System.Linq;
 using System.Management;
-using FanControl.Plugins;
 
 namespace FanControl.HardDiskSentinel
 {
     public class PluginSensor : IPluginSensor
     {
         private readonly Drive _drive;
+        private readonly ManagementScope _scope = new ManagementScope(@"root\wmi");
+        private readonly ObjectQuery _query = new ObjectQuery("SELECT * FROM HDSentinel");
 
         public PluginSensor(Drive drive)
         {
@@ -19,19 +22,26 @@ namespace FanControl.HardDiskSentinel
 
         public void Update()
         {
-            var scope = new ManagementScope(@"root\wmi");
-            var query = new ObjectQuery("SELECT * FROM HDSentinel");
+            using var searcher = new ManagementObjectSearcher(_scope, _query);
 
-            using var searcher = new ManagementObjectSearcher(scope, query);
+            float temperature = 36;
+            try
+            {
+                var items = searcher.Get();
 
-            var items = searcher.Get();
-
-            var temperature = items.Cast<ManagementObject>()
-                .Select(DriveInfoReader.ReadBasic)
-                .Where(drive => drive.Model == _drive.Model &&
-                                drive.Serial == _drive.Serial)
-                .Select(drive => drive.Temperature)
-                .Select(float.Parse).FirstOrDefault();
+                temperature = items.Cast<ManagementObject>()
+                    .Select(DriveInfoReader.ReadFromWmi)
+                    .Where(drive => drive.Model == _drive.Model && drive.Serial == _drive.Serial)
+                    .Select(drive => drive.Temperature)
+                    .Select(float.Parse)
+                    .FirstOrDefault();
+            }
+            catch (ManagementException exception)
+            {
+#if DEBUG
+                Debug.Print(exception.ToString());
+#endif
+            }
 
             Value = temperature;
         }
