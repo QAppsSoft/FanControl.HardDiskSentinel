@@ -32,7 +32,8 @@ namespace FanControl.HardDiskSentinel
                     .Cast<ManagementObject>()
                     .Select(DriveInfoReader.ReadFromWmi)
                     // Filter using StartWith because apparently PowerShell trims the last two character from model number in Windows Server 2019
-                    .Where(drive => drive.Model.StartsWith(_drive.Model) && drive.Serial == _drive.Serial)
+                    .Where(drive => drive.Model.StartsWith(_drive.Model) || drive.Model == _drive.Model)
+                    .Where(drive =>  drive.Serial == _drive.Serial)
                     .Select(drive => drive.Temperature)
                     .First();
 
